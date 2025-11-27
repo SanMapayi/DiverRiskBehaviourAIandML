@@ -12,14 +12,23 @@ import org.jfree.data.category.DefaultCategoryDataset;
 
 import java.awt.*;
 import java.io.*;
+import java.util.Arrays;
+import java.util.Comparator;
 
 public class ConfusionMatrixChart {
 
     public static void main(String[] args) throws Exception {
 
-        String csvFile = "docs/experiments/confusion-matrix.csv";
-        String pngFile = "docs/experiments/confusion-matrix.png";
-        String pdfFile = "docs/experiments/confusion-matrix.pdf";
+        File runFolder = findLatestRunFolder();
+
+        if (runFolder == null) {
+            System.out.println("❌ No experiment run folders found.");
+            return;
+        }
+
+        File csvFile = new File(runFolder, "confusion-matrix.csv");
+        File pngFile = new File(runFolder, "confusion-matrix.png");
+        File pdfFile = new File(runFolder, "confusion-matrix.pdf");
 
         int tn = 0, fp = 0, fn = 0, tp = 0;
 
@@ -45,8 +54,8 @@ public class ConfusionMatrixChart {
         br.close();
 
         // Metrics
-        double precision = tp / (double) (tp + fp);
-        double recall = tp / (double) (tp + fn);
+        double precision = (tp + fp) == 0 ? 0 : tp / (double) (tp + fp);
+        double recall = (tp + fn) == 0 ? 0 : tp / (double) (tp + fn);
 
         // Build dataset
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
@@ -62,7 +71,7 @@ public class ConfusionMatrixChart {
                 dataset
         );
 
-        // Custom colouring by magnitude
+        // Colouring
         CategoryPlot plot = chart.getCategoryPlot();
         BarRenderer renderer = new BarRenderer() {
             @Override
@@ -76,7 +85,6 @@ public class ConfusionMatrixChart {
                 return new Color(200, 0, 0);
             }
         };
-
         plot.setRenderer(renderer);
 
         // Metrics overlay
@@ -85,11 +93,24 @@ public class ConfusionMatrixChart {
         ));
 
         // Save PNG
-        ChartUtils.saveChartAsPNG(new File(pngFile), chart, 900, 700);
-        System.out.println("✅ PNG saved: " + pngFile);
+        ChartUtils.saveChartAsPNG(pngFile, chart, 900, 700);
+        System.out.println("✅ PNG saved: " + pngFile.getAbsolutePath());
 
         // Save PDF
-        exportPNGtoPDF(pngFile, pdfFile);
+        exportPNGtoPDF(pngFile.getAbsolutePath(), pdfFile.getAbsolutePath());
+    }
+
+    // ✅ Find latest versioned run folder
+    private static File findLatestRunFolder() {
+        File base = new File("docs/Experiments");
+
+        File[] runs = base.listFiles((dir, name) -> name.startsWith("run_"));
+
+        if (runs == null || runs.length == 0) return null;
+
+        Arrays.sort(runs, Comparator.comparing(File::getName).reversed());
+
+        return runs[0];
     }
 
     // Convert PNG to PDF

@@ -14,8 +14,8 @@ public class GlobalVariables {
 
     public static Path RISK_REPORT_PATH = Path.of("docs","experiments","trip_risk_report.csv");
 
-    public static Path RESULTPATH = Path.of("docs","experiments","results.csv");
-    public static Path LOSSPATH = Path.of("docs","experiments","loss.csv");
+    public static Path RESULTPATH = Path.of("/results.csv");
+    public static Path LOSSPATH = Path.of("/loss.csv");
 
     public static Path CONFUSIONMATRIX_PATH = Path.of("docs","experiments","confusion-matrix.csv");
 

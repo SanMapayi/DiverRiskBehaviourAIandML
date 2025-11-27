@@ -11,6 +11,7 @@ import uk.ac.york.driverriskpredictivemodel.model.ModelEvaluator;
 import uk.ac.york.driverriskpredictivemodel.model.ModelSaver;
 import uk.ac.york.driverriskpredictivemodel.model.ModelTrainer;
 import uk.ac.york.driverriskpredictivemodel.model.NeuralNetworkConfig;
+import uk.ac.york.driverriskpredictivemodel.util.ChartGenerator;
 import uk.ac.york.driverriskpredictivemodel.util.ConfusionMatrixChart;
 
 import java.io.File;
@@ -57,16 +58,20 @@ public class main {
         } else {
             model = NeuralNetworkConfig.build(8, 2);
             System.out.println("Created new model");
-        }
+         }
 
-        // Train
         ModelTrainer trainer = new ModelTrainer();
-        trainer.train(model, data.trainIterator, data.testIterator, 10);
+        trainer.train(model, data.trainIterator, data.testIterator, 20);
 
-        // Evaluate
+        // Evaluation now uses run folder
         ModelEvaluator evaluator = new ModelEvaluator();
-        evaluator.evaluate(model, data.testIterator, GlobalVariables.CONFUSIONMATRIX_PATH.toString());
+        evaluator.evaluate(model, data.testIterator, trainer.getRunFolder());
+
+
+        ChartGenerator.main(null);
         ConfusionMatrixChart.main(null);
+        uk.ac.york.driverriskpredictivemodel.util.ExperimentComparator.main(null);
+        uk.ac.york.driverriskpredictivemodel.util.ExperimentChart.main(null);
 
         // Save model
         saver.save(model, savedModel.getPath());

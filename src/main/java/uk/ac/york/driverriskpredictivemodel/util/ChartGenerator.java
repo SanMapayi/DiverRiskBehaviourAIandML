@@ -4,24 +4,43 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.jfree.data.category.DefaultCategoryDataset;
-import uk.ac.york.driverriskpredictivemodel.config.GlobalVariables;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
+import java.io.*;
+import java.util.Arrays;
+import java.util.Comparator;
 
 public class ChartGenerator {
 
     public static void main(String[] args) throws Exception {
 
-        generateAccuracyChart();
-        generateLossChart();
+        File latestRun = findLatestRunFolder();
+
+        if (latestRun == null) {
+            System.out.println("❌ No experiment runs found!");
+            return;
+        }
+
+        generateAccuracyChart(latestRun);
+        generateLossChart(latestRun);
     }
 
-    private static void generateAccuracyChart() throws Exception {
+    // ✅ Find latest run folder
+    private static File findLatestRunFolder() {
+        File base = new File("docs/Experiments");
 
-        String csvFile = GlobalVariables.RESULTPATH.toString();
-        String outputImage = GlobalVariables.TRAINING_ACCURACY_PNG_PATH.toString();
+        File[] runs = base.listFiles((dir, name) -> name.startsWith("run_"));
+
+        if (runs == null || runs.length == 0) return null;
+
+        Arrays.sort(runs, Comparator.comparing(File::getName).reversed());
+
+        return runs[0];
+    }
+
+    private static void generateAccuracyChart(File runFolder) throws Exception {
+
+        String csvFile = new File(runFolder, "results.csv").getAbsolutePath();
+        String outputImage = new File(runFolder, "training-accuracy.png").getAbsolutePath();
 
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
@@ -46,13 +65,13 @@ public class ChartGenerator {
         );
 
         ChartUtils.saveChartAsPNG(new File(outputImage), chart, 800, 600);
-        System.out.println("aAccuracy chart saved: " + outputImage);
+        System.out.println("✅ Accuracy chart saved: " + outputImage);
     }
 
-    private static void generateLossChart() throws Exception {
+    private static void generateLossChart(File runFolder) throws Exception {
 
-        String csvFile = GlobalVariables.LOSSPATH.toString();
-        String outputImage = GlobalVariables.TRAINING_LOSS_PNG_PATH.toString();
+        String csvFile = new File(runFolder, "loss.csv").getAbsolutePath();
+        String outputImage = new File(runFolder, "training-loss.png").getAbsolutePath();
 
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
@@ -77,6 +96,6 @@ public class ChartGenerator {
         );
 
         ChartUtils.saveChartAsPNG(new File(outputImage), chart, 800, 600);
-        System.out.println("Loss chart saved: " + outputImage);
+        System.out.println("✅ Loss chart saved: " + outputImage);
     }
 }
